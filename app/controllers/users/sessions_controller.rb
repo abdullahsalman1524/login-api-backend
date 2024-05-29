@@ -5,6 +5,32 @@ class Users::SessionsController < Devise::SessionsController
 
   respond_to :json
 
+  def create
+    # unless request.format.json?
+    #   # flash[:alert] = "Invalid request format."
+    #   redirect_to new_user_session_path
+    #   return
+    # end
+
+    # Try to authenticate the user
+    self.resource = warden.authenticate!(auth_options)
+
+
+    if resource
+      # Successful authentication
+      sign_in(resource_name, resource)
+      respond_with(resource, location: after_sign_in_path_for(resource))
+    else
+      # Authentication failed
+      render json: {
+        status: {
+          code: 401,
+          message: 'Invalid email or password.'
+        }
+      }, status: :unauthorized
+    end
+  end
+
   private
 
   def respond_with(current_user, _opts = {})
